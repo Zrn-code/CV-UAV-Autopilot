@@ -23,10 +23,13 @@ def bilinear_interpolation(image, rate):
             x1 = min(x0 + 1, w - 1) # avoid out of range            
             y1 = min(y0 + 1, h - 1) 
             # bilinear interpolation
-            image_new[i, j] = (x1 - x) * (y1 - y) * image[y0, x0] + \
+            # refer to https://en.wikipedia.org/wiki/Bilinear_interpolation#Repeated_linear_interpolation
+            # (x1 - x0) * (y1 - y0) = 1 -> 1/((x1 - x0) * (y1 - y0)) = 1
+            image_new[i, j] = ((x1 - x) * (y1 - y) * image[y0, x0] + \
                               (x - x0) * (y1 - y) * image[y0, x1] + \
                               (x1 - x) * (y - y0) * image[y1, x0] + \
-                              (x - x0) * (y - y0) * image[y1, x1]
+                              (x - x0) * (y - y0) * image[y1, x1])
+            
     return image_new
 
 
