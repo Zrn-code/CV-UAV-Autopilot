@@ -22,5 +22,3 @@ cv2.imshow('Blue Filter', result)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
-# Save the resulting image
-cv2.imwrite('blue_filtered_image.jpg', result)
