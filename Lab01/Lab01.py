@@ -1,8 +1,6 @@
 import numpy as np
 import cv2
 
-
-
 def blue_filter(image):
     # Read the image
     image = cv2.imread('test.jpg')
@@ -22,6 +20,22 @@ def blue_filter(image):
 
     return result
     
+    
+def adjust_contrast_brightness(image, contrast, brightness):
+    new_image = (image.astype(np.int32) - 127) * (contrast / 127 + 1) + 127 + brightness
+    new_image = np.clip(new_image, 0, 255).astype(np.uint8)
+    return new_image
+
+def yellow_blue_contrast(image, contrast, brightness):
+    blue_mask = (image[:, :, 0] > 100) & (image[:, :, 0] * 0.6 > image[:, :, 1]) & (image[:, :, 0] * 0.6 > image[:, :, 2])
+    yellow_mask =  ((image[:, :, 0] + image[:, :, 1]) *0.3 > image[:, :, 2])
+
+    result = image.copy()
+
+    result[blue_mask] = adjust_contrast_brightness(result[blue_mask], contrast, brightness)
+    result[yellow_mask] = adjust_contrast_brightness(result[yellow_mask], contrast, brightness)
+
+    return result
     
 def bilinear_interpolation(image, rate):
     # get image size
@@ -87,11 +101,23 @@ if __name__ == '__main__':
     while True:
         choice = input('Enter your choice (Q1/Q2/Q3): ')
         if choice == 'Q1':
-            image = cv2.imread('test.jpg')
-            image_1 = blue_filter(image)
-            cv2.imshow('Blue Filter', image_1)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
+            x = int(input('Enter the subproblem: '))
+            if x == 1:
+                image = cv2.imread('test.jpg')
+                image_1 = blue_filter(image)
+                cv2.imshow('Blue Filter', image_1)
+                cv2.waitKey(0)
+                cv2.destroyAllWindows()
+            elif x == 2:
+                image = cv2.imread('test.jpg')
+                contrast = int(input('Enter the contrast: '))
+                brightness = int(input('Enter the brightness: '))
+                image_1 = yellow_blue_contrast(image, contrast, brightness)
+                cv2.imshow('Yellow and Blue Contrast Adjustment', image_1)
+                cv2.waitKey(0)
+                cv2.destroyAllWindows()
+            else:
+                print('Invalid subproblem!')
         elif choice == 'Q2':
             image = cv2.imread('ive.jpg')
             rate = float(input('Enter the rate of interpolation: '))
