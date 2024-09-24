@@ -37,21 +37,27 @@ def bilinear_interpolation(image, rate):
     # calculate new image pixel value
     for i in range(h_new):
         for j in range(w_new):
-            x = (j + 0.5) * scale_x - 0.5 # make sure the center of pixel is in the center of image
+            x = (j + 0.5) * scale_x - 0.5  # make sure the center of pixel is in the center of image
             y = (i + 0.5) * scale_y - 0.5
-            x0 = int(np.floor(x)) # get the nearest pixel
+            x0 = int(np.floor(x))  # get the nearest pixel
             y0 = int(np.floor(y))
-            x1 = min(x0 + 1, w - 1) # avoid out of range            
-            y1 = min(y0 + 1, h - 1) 
+            x1 = min(x0 + 1, w - 1)  # avoid out of range
+            y1 = min(y0 + 1, h - 1)
+            
+            # Avoid zero division
+            dx = x1 - x0 if x1 != x0 else 1
+            dy = y1 - y0 if y1 != y0 else 1
+
             # bilinear interpolation
             # refer to https://en.wikipedia.org/wiki/Bilinear_interpolation#Repeated_linear_interpolation
-            # (x1 - x0) * (y1 - y0) = 1 -> 1/((x1 - x0) * (y1 - y0)) = 1
-            image_new[i, j] = ((x1 - x) * (y1 - y) * image[y0, x0] + \
-                              (x - x0) * (y1 - y) * image[y0, x1] + \
-                              (x1 - x) * (y - y0) * image[y1, x0] + \
-                              (x - x0) * (y - y0) * image[y1, x1])
-            
+            image_new[i, j] = 1 / (dx * dy) * (
+                (x1 - x) * (y1 - y) * image[y0, x0] +
+                (x - x0) * (y1 - y) * image[y0, x1] +
+                (x1 - x) * (y - y0) * image[y1, x0] +
+                (x - x0) * (y - y0) * image[y1, x1]
+            )
     return image_new
+
     
 def filtering_sobel(image):
     # Convert the image to grayscale
