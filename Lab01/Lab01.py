@@ -97,7 +97,7 @@ def filtering_sobel(image):
 
     
 if __name__ == '__main__':
-    print('Lab01 Demo:\nQ1: Blue Filter\nQ2: Bilinear Interpolation\nQ3: Sobel Filter Detection\n')
+    print('Lab01 Demo:\nQ1: 1.Blue Filter & 2.Contrast and Brightness \nQ2: Bilinear Interpolation\nQ3: Sobel Filter Detection\n')
     while True:
         choice = input('Enter your choice (Q1/Q2/Q3): ')
         if choice == 'Q1':
