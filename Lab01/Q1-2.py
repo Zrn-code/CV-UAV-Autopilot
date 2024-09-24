@@ -1,45 +1,40 @@
 import cv2
 import numpy as np
 
-# 调整对比度和亮度的函数
 def adjust_contrast_brightness(image, contrast, brightness):
-    # 将图像转换为 int32 以防止溢出
-    new_image = (image.astype(np.int32) - 127) * (contrast / 127 + 1) + 127 + brightness
-    # 使用 np.clip 防止溢出，并转换回 uint8
-    new_image = np.clip(new_image, 0, 255).astype(np.uint8)
-    return new_image
+    # Convert the image to int32 to avoid overflow issues
+    new_image = np.int32(image)
+    
+    # Apply the contrast and brightness adjustments
+    new_image = (new_image - 127) * (contrast / 127 + 1) + 127 + brightness
+    
+    # Clip the values to be in the valid range [0, 255]
+    new_image = np.clip(new_image, 0, 255)
+    
+    # Convert back to uint8
+    return np.uint8(new_image)
 
-# 读取图片
+# Load your image 
 image = cv2.imread('test.jpg')
 
+# Extract the blue, green, and red channels
+B, G, R = image[:, :, 0], image[:, :, 1], image[:, :, 2]
 
+# Create a mask based on the condition: (B + G) * 0.3 > R
+mask = (B + G) * 0.3 > R
 
-# 定义对比度和亮度调整参数
-contrast = 50    # 对比度调整量，可根据需要调整
-brightness = 30  # 亮度调整量，可根据需要调整
+# Initialize the output image as a copy of the original
+output_image = image.copy()
 
-# 识别蓝点的掩码
-# 条件: B > 100 且 B * 0.6 > G 且 B * 0.6 > R
-blue_mask = (image[:, :, 0] > 100) & (image[:, :, 0] * 0.6 > image[:, :, 1]) & (image[:, :, 0] * 0.6 > image[:, :, 2])
+# Apply contrast and brightness adjustment only to the masked pixels
+output_image[mask] = adjust_contrast_brightness(image[mask], contrast=100, brightness=40)
 
-# 识别黄点的掩码
-# 黄点通常由高 R 和 G 值组成，且相对较低的 B 值
-# 我们可以定义黄点条件为: R > 100 且 G > 100 且 (R + G) / 2 > B
-yellow_mask = (image[:, :, 2] > 100) & (image[:, :, 1] > 100) & ((image[:, :, 2] + image[:, :, 1]) / 2 > image[:, :, 0])
+# Display the original and adjusted images
+cv2.imshow('Original Image', image)
+cv2.imshow('Adjusted Image', output_image)
 
-# 创建结果图像的副本
-result = image.copy()
-
-# 对蓝点进行对比度与亮度调整
-result[blue_mask] = adjust_contrast_brightness(result[blue_mask], contrast, brightness)
-
-# 对黄点进行对比度与亮度调整
-result[yellow_mask] = adjust_contrast_brightness(result[yellow_mask], contrast, brightness)
-
-# 显示处理后的图像
-cv2.imshow('Adjusted Blue and Yellow Points', result)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
-# 可选：保存处理后的图像
-# cv2.imwrite('adjusted_test.jpg', result)
+# save the adjusted image
+cv2.imwrite('adjusted_image.jpg', output_image)

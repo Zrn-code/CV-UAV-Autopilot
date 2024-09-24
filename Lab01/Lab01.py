@@ -22,18 +22,24 @@ def blue_filter(image):
     
     
 def adjust_contrast_brightness(image, contrast, brightness):
-    new_image = (image.astype(np.int32) - 127) * (contrast / 127 + 1) + 127 + brightness
-    new_image = np.clip(new_image, 0, 255).astype(np.uint8)
-    return new_image
+    # Convert the image to int32 to avoid overflow issues
+    new_image = np.int32(image)
+    
+    # Apply the contrast and brightness adjustments
+    new_image = (new_image - 127) * (contrast / 127 + 1) + 127 + brightness
+    
+    # Clip the values to be in the valid range [0, 255]
+    new_image = np.clip(new_image, 0, 255)
+    
+    # Convert back to uint8
+    return np.uint8(new_image)
 
 def yellow_blue_contrast(image, contrast, brightness):
-    blue_mask = (image[:, :, 0] > 100) & (image[:, :, 0] * 0.6 > image[:, :, 1]) & (image[:, :, 0] * 0.6 > image[:, :, 2])
-    yellow_mask =  ((image[:, :, 0] + image[:, :, 1]) *0.3 > image[:, :, 2])
+    mask =  ((image[:, :, 0] + image[:, :, 1]) *0.3 > image[:, :, 2])
 
     result = image.copy()
-
-    result[blue_mask] = adjust_contrast_brightness(result[blue_mask], contrast, brightness)
-    result[yellow_mask] = adjust_contrast_brightness(result[yellow_mask], contrast, brightness)
+    # Apply contrast and brightness adjustment only to the masked pixels
+    result[mask] = adjust_contrast_brightness(result[mask], contrast, brightness)
 
     return result
     
