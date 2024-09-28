@@ -59,3 +59,5 @@ if __name__ == '__main__':
     cv2.imshow('Otsu Threshold Image', image_2)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+    cv2.imwrite('output.png', image_2)
