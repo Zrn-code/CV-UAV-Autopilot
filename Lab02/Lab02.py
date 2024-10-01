@@ -5,10 +5,10 @@ import random
 def equalize_channel(channel):
     # Compute the histogram of the channel
     hist = cv2.calcHist([channel], [0], None, [256], [0, 256])
-    
+    #print(hist)
     # Compute the CDF of the histogram
     cdf = hist.cumsum()
-    
+    #print(cdf)
     # Use the CDF to normalize the channel values
     cdf_m = np.ma.masked_equal(cdf, 0)  # mask the zero values in the CDF
     cdf_m = (cdf_m - cdf_m.min()) * 255 / (cdf_m.max() - cdf_m.min())  # normalize the CDF
@@ -20,9 +20,6 @@ def equalize_channel(channel):
     return equalized_channel
 
 def Q1_1(image):
-    # Convert the image from BGR to RGB for displaying using matplotlib
-    #image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
     # Split the image into its BGR components
     b, g, r = cv2.split(image)
 
@@ -33,7 +30,7 @@ def Q1_1(image):
     
     # Merge the equalized channels back
     equalized_image = cv2.merge([equalized_b, equalized_g, equalized_r])
-    #display_compare_result(image_rgb, cv2.cvtColor(equalized_image, cv2.COLOR_BGR2RGB), 'Original Image', 'Equalized Image (BGR Channels)')
+    
     return equalized_image
 
 def Q1_2(image):
@@ -52,7 +49,6 @@ def Q1_2(image):
     # Convert the equalized HSV image back to BGR format for display
     equalized_bgr_image = cv2.cvtColor(equalized_hsv_image, cv2.COLOR_HSV2BGR)
 
-    #display_compare_result(cv2.cvtColor(image, cv2.COLOR_BGR2RGB), cv2.cvtColor(equalized_bgr_image, cv2.COLOR_BGR2RGB), 'Original Image', 'Equalized Image (V Channel)')
     return equalized_bgr_image
 
 
