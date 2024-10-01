@@ -1,36 +1,25 @@
 import cv2
 import numpy as np
-from matplotlib import pyplot as plt
 import random
 
-def display_compare_result(image1, image2, image3, title1, title2, title3):
-    plt.figure(figsize=(18, 6))
-
-    # Original Image
-    plt.subplot(1, 3, 1)
-    plt.imshow(image1)
-    plt.title(title1)
-    plt.axis('off')
-
-    # Equalized Image
-    plt.subplot(1, 3, 2)
-    plt.imshow(image2)
-    plt.title(title2)
-    plt.axis('off')
+def equalize_channel(channel):
+    # Compute the histogram of the channel
+    hist = cv2.calcHist([channel], [0], None, [256], [0, 256])
     
-    # Equalized Image
-    plt.subplot(1, 3, 3)
-    plt.imshow(image3)
-    plt.title(title3)
-    plt.axis('off')
-
-    plt.show()
-
+    # Compute the CDF of the histogram
+    cdf = hist.cumsum()
+    
+    # Use the CDF to normalize the channel values
+    cdf_m = np.ma.masked_equal(cdf, 0)  # mask the zero values in the CDF
+    cdf_m = (cdf_m - cdf_m.min()) * 255 / (cdf_m.max() - cdf_m.min())  # normalize the CDF
+    cdf_final = np.ma.filled(cdf_m, 0).astype('uint8')  # fill the masked values with zeros
+    
+    # Apply the equalization to the channel
+    equalized_channel = cdf_final[channel]
+    
+    return equalized_channel
 
 def Q1_1(image):
-    # Load the image
-    image = cv2.imread("histogram.jpg")
-
     # Convert the image from BGR to RGB for displaying using matplotlib
     #image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
@@ -38,19 +27,16 @@ def Q1_1(image):
     b, g, r = cv2.split(image)
 
     # Apply histogram equalization to each channel
-    equalized_b = cv2.equalizeHist(b)
-    equalized_g = cv2.equalizeHist(g)
-    equalized_r = cv2.equalizeHist(r)
-
+    equalized_b = equalize_channel(b)
+    equalized_g = equalize_channel(g)
+    equalized_r = equalize_channel(r)
+    
     # Merge the equalized channels back
     equalized_image = cv2.merge([equalized_b, equalized_g, equalized_r])
     #display_compare_result(image_rgb, cv2.cvtColor(equalized_image, cv2.COLOR_BGR2RGB), 'Original Image', 'Equalized Image (BGR Channels)')
     return equalized_image
 
 def Q1_2(image):
-    # Load the image
-    image = cv2.imread("histogram.jpg")
-
     # Convert the image to HSV format
     hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
@@ -58,7 +44,7 @@ def Q1_2(image):
     h, s, v = cv2.split(hsv_image)
 
     # Apply histogram equalization only to the V (Value) channel
-    equalized_v = cv2.equalizeHist(v)
+    equalized_v = equalize_channel(v)
 
     # Merge the equalized V channel back with H and S
     equalized_hsv_image = cv2.merge([h, s, equalized_v])
@@ -200,7 +186,14 @@ if __name__ == "__main__":
             image = cv2.imread("histogram.jpg")
             equalized_image = Q1_1(image)
             equalized_image_2 = Q1_2(image)
-            display_compare_result(cv2.cvtColor(image, cv2.COLOR_BGR2RGB), cv2.cvtColor(equalized_image, cv2.COLOR_BGR2RGB), cv2.cvtColor(equalized_image_2, cv2.COLOR_BGR2RGB), 'Original Image', 'Equalized Image (BGR Channels)', 'Equalized Image (V Channel)')
+            cv2.imshow("Equalized Image (BGR Channels)", equalized_image)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+            
+            cv2.imshow("Equalized Image (V Channel)", equalized_image_2)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+            #display_compare_result(cv2.cvtColor(image, cv2.COLOR_BGR2RGB), cv2.cvtColor(equalized_image, cv2.COLOR_BGR2RGB), cv2.cvtColor(equalized_image_2, cv2.COLOR_BGR2RGB), 'Original Image', 'Equalized Image (BGR Channels)', 'Equalized Image (V Channel)')
                 
         elif choice == "Q2":
             image = cv2.imread("input.jpg", 0)
