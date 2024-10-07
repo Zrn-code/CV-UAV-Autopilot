@@ -10,7 +10,7 @@ background = cv2.imread('screen.jpg')
 # Define the coordinates of the four corners of your webcam frame and the corresponding coordinates on the background
 # webcam_corners = np.array([[x1, y1], [x2, y2], [x3, y3], [x4, y4]], dtype=np.float32)
 # screen_corners = np.array([[0, 0], [background.shape[1], 0], [background.shape[1], background.shape[0], [0, background.shape[0]]], dtype=np.float32)
-webcam_corners = np.array([[414, 874], [1639, 207], [1659, 1249], [329, 1406]], dtype=np.float32)
+webcam_corners = np.array([[ 414, 874], [1639, 207], [ 329, 1406], [1659, 1249]], dtype=np.float32)
 while True:
     # Capture a frame from the webcam
     ret, frame = cap.read()
