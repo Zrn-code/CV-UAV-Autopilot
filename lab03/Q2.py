@@ -8,9 +8,14 @@ cap = cv2.VideoCapture(0)
 background = cv2.imread('screen.jpg')
 
 # Define the coordinates of the four corners of your webcam frame and the corresponding coordinates on the background
-# webcam_corners = np.array([[x1, y1], [x2, y2], [x3, y3], [x4, y4]], dtype=np.float32)
-# screen_corners = np.array([[0, 0], [background.shape[1], 0], [background.shape[1], background.shape[0], [0, background.shape[0]]], dtype=np.float32)
-webcam_corners = np.array([[ 414, 874], [1639, 207], [ 329, 1406], [1659, 1249]], dtype=np.float32)
+webcam_corners = np.array([[414, 874], [1639, 207], [329, 1406], [1659, 1249]], dtype=np.float32)
+
+# Create a named window and make it resizable
+cv2.namedWindow('Mapped Webcam Frame', cv2.WINDOW_NORMAL)
+
+# Resize the window to a smaller size (e.g., 640x480)
+cv2.resizeWindow('Mapped Webcam Frame', 640, 480)
+
 while True:
     # Capture a frame from the webcam
     ret, frame = cap.read()
@@ -22,9 +27,6 @@ while True:
 
     # Calculate the perspective transform matrix using getPerspectiveTransform
     perspective_matrix = cv2.getPerspectiveTransform(webcam_corners, screen_corners)
-
-    # Create a canvas of the same size as the background
-    # background = np.zeros_like(background, dtype=np.uint8)
 
     # Iterate through each pixel in the output image and perform bilinear interpolation
     for y in range(background.shape[0]):
