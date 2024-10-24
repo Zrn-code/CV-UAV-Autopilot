@@ -118,7 +118,8 @@ if __name__ == '__main__':
     drone = Tello()
     drone.connect()
     #cap = cv2.VideoCapture(1)
-    time.sleep(10)
+    print(drone.get_battery())
+    time.sleep(5)
 
     x_pid = PID(kP=0.72, kI=0, kD=0.1)  # Use tvec_x (tvec[i,0,0]) ----> control left and right
     z_pid = PID(kP=0.8, kI=0.0005, kD=0.2)  # Use tvec_z (tvec[i,0,2])----> control forward and backward
@@ -143,6 +144,8 @@ if __name__ == '__main__':
     ####################################################################################
     #   Frame Loop
     ####################################################################################
+    flag_1 = False
+    
     
     try:
         while True: 
@@ -158,13 +161,16 @@ if __name__ == '__main__':
             if markerIds is not None:
 
                 frame = cv2.aruco.drawDetectedMarkers(frame, markerCorners, markerIds)
-                rvec, tvec, _objPoints = cv2.aruco.estimatePoseSingleMarkers(markerCorners, 15, cali_intr, cali_dist)        
+                rvec, tvec, _objPoints = cv2.aruco.estimatePoseSingleMarkers(markerCorners, 15, cali_intr, cali_dist) 
+                       
                 for i in range(len(markerIds)):
+                    
                     PID_state = {}
                     frame = cv2.aruco.drawAxis(frame, cali_intr, cali_dist, rvec[i], tvec[i], 7.5)
                     #####################################
                     #   Project Angle (Angle translation)
                     #####################################
+                    
                     
                     rvec_3x3,_ = cv2.Rodrigues(rvec[i])
                     rvec_zbase = rvec_3x3.dot(Z_BASE)
@@ -178,77 +184,101 @@ if __name__ == '__main__':
                     #######################
                     #       Z-PID
                     #######################
-                    z_update = tvec[i,0,2] - 70
-                    PID_state["org_z"] = str(z_update)
-                    z_update = z_pid.update(z_update, sleep=0)
-                    PID_state["pid_z"] = str(z_update)
+    
+                    if markerIds[i] == 1:
+                        z_update = tvec[i,0,2] - 80
+                        PID_state["org_z"] = str(z_update)
+                        z_update = z_pid.update(z_update, sleep=0)
+                        PID_state["pid_z"] = str(z_update)
+                        z_update = MAX_threshold(z_update)
+                        #drone.send_rc_control(0,0,0,0)
+                        #######################
+                        #       X-PID
+                        #######################
+                        x_update = tvec[i,0,0]
+                        PID_state["org_x"] = str(x_update)
+                        x_update = x_pid.update(x_update, sleep=0)
+                        PID_state["pid_x"] = str(x_update)
+                        x_update = MAX_threshold(x_update)
+                        #######################
+                        #       Y-PID
+                        #######################
+                        y_update = tvec[i,0,1]*(-1)
+                        PID_state["org_y"] = str(y_update)
+                        y_update = y_pid.update(y_update, sleep=0)
+                        PID_state["pid_y"] = str(y_update)
 
-                    z_update = MAX_threshold(z_update)
-                    '''
-                    z_update = MAX_threshold(z_update)
-                    if z_update > MAX_SPEED_THRESHOD:
-                        z_update = MAX_SPEED_THRESHOD
-                    elif z_update < -MAX_SPEED_THRESHOD:
-                        z_update = -MAX_SPEED_THRESHOD
-                    '''
-                    #######################
-                    #       X-PID
-                    #######################
-                    x_update = tvec[i,0,0]
-                    PID_state["org_x"] = str(x_update)
-                    x_update = x_pid.update(x_update, sleep=0)
-                    PID_state["pid_x"] = str(x_update)
+                        y_update = MAX_threshold(y_update)
+                        #######################
+                        #       YAW-PID
+                        #######################
+                        yaw_update = (-1)* angle_diff
+                        PID_state["org_yaw"] = str(yaw_update)
+                        yaw_update = yaw_pid.update(yaw_update, sleep=0)
+                        PID_state["pid_yaw"] = str(yaw_update)
+
+                        yaw_update = MAX_threshold(yaw_update)
+                        #######################
+                        #   Motion Response
+                        #######################
+                        drone.send_rc_control(int(x_update//RC_update_para_x), int(z_update//RC_update_para_z), int(y_update//RC_update_para_y), int(yaw_update//RC_update_para_yaw))
+                        if abs(z_update) <=15 and abs(x_update) <=15 and tvec[i,0,2] <= 110:
+                            drone.move_right(80)
+                            drone.move_forward(100)
+                            flag_1 = True
+                            time.sleep(1)
+                        
+                    elif markerIds[i] == 2 and flag_1:
+                        z_update = tvec[i,0,2] - 70
+                        PID_state["org_z"] = str(z_update)
+                        z_update = z_pid.update(z_update, sleep=0)
+                        PID_state["pid_z"] = str(z_update)
+                        z_update = MAX_threshold(z_update)
+                        if abs(z_update) <=15:
+                            drone.send_rc_control(-100, 0, 0, 0)
+                            time.sleep(1)
+                            drone.send_rc_control(0,0,0,0)
+                        #######################
+                        #       X-PID
+                        #######################
+                        x_update = tvec[i,0,0]
+                        PID_state["org_x"] = str(x_update)
+                        x_update = x_pid.update(x_update, sleep=0)
+                        PID_state["pid_x"] = str(x_update)
+                        x_update = MAX_threshold(x_update)
+                        #######################
+                        #       Y-PID
+                        #######################
+                        y_update = tvec[i,0,1]*(-1)
+                        PID_state["org_y"] = str(y_update)
+                        y_update = y_pid.update(y_update, sleep=0)
+                        PID_state["pid_y"] = str(y_update)
+
+                        y_update = MAX_threshold(y_update)
+                        #######################
+                        #       YAW-PID
+                        #######################
+                        yaw_update = (-1)* angle_diff
+                        PID_state["org_yaw"] = str(yaw_update)
+                        yaw_update = yaw_pid.update(yaw_update, sleep=0)
+                        PID_state["pid_yaw"] = str(yaw_update)
+
+                        yaw_update = MAX_threshold(yaw_update)
+                        #######################
+                        #   Motion Response
+                        #######################
+                        drone.send_rc_control(int(x_update//RC_update_para_x), int(z_update//RC_update_para_z), int(y_update//RC_update_para_y), int(yaw_update//RC_update_para_yaw))
+
                     
-                    x_update = MAX_threshold(x_update)
-                    '''
-                    if x_update > MAX_SPEED_THRESHOD:
-                        x_update = MAX_SPEED_THRESHOD
-                    elif x_update < -MAX_SPEED_THRESHOD:
-                        x_update = -MAX_SPEED_THRESHOD
-                    '''
-                    #######################
-                    #       Y-PID
-                    #######################
-                    y_update = tvec[i,0,1]*(-1)
-                    PID_state["org_y"] = str(y_update)
-                    y_update = y_pid.update(y_update, sleep=0)
-                    PID_state["pid_y"] = str(y_update)
-
-                    y_update = MAX_threshold(y_update)
-                    '''
-                    if y_update > MAX_SPEED_THRESHOD:
-                        y_update = MAX_SPEED_THRESHOD
-                    elif y_update < -MAX_SPEED_THRESHOD:
-                        y_update = -MAX_SPEED_THRESHOD
-                    '''
-                    #######################
-                    #       YAW-PID
-                    #######################
-                    yaw_update = (-1)* angle_diff
-                    PID_state["org_yaw"] = str(yaw_update)
-                    yaw_update = yaw_pid.update(yaw_update, sleep=0)
-                    PID_state["pid_yaw"] = str(yaw_update)
-
-                    yaw_update = MAX_threshold(yaw_update)
-                    '''
-                    if yaw_update > MAX_SPEED_THRESHOD:
-                        yaw_update = MAX_SPEED_THRESHOD
-                    elif yaw_update < -MAX_SPEED_THRESHOD:
-                        yaw_update = -MAX_SPEED_THRESHOD
-                    '''
-                    #######################
-                    #   Motion Response
-                    #######################
-                    drone.send_rc_control(int(x_update//RC_update_para_x), int(z_update//RC_update_para_z), int(y_update//RC_update_para_y), int(yaw_update//RC_update_para_yaw))
-                    print("--------------------------------------------")
+                    #print("--------------------------------------------")
                     #now = time.ctime()
                     #print("{}: PID state".format(now))
-                    print("MarkerIDs: {}".format(i))
-                    print("tvec: {}||{}||{}||{}".format(tvec[i,0,0], tvec[i,0,1], tvec[i,0,2], angle_diff))
-                    print("org: {}||{}||{}||{}".format(PID_state["org_x"],PID_state["org_y"],PID_state["org_z"],PID_state["org_yaw"]))
-                    print("PID: {}||{}||{}||{}".format(PID_state["pid_x"],PID_state["pid_y"],PID_state["pid_z"],PID_state["pid_yaw"]))
-                    print("--------------------------------------------")
-                    text ="ID:{}|x,y,z||angle = {},{},{}||{}".format(len(markerIds), tvec[i,0,0], tvec[i,0,1], tvec[i,0,2], angle_diff) 
+                    #print("MarkerIDs: {}".format(i))
+                    #print("tvec: {}||{}||{}||{}".format(tvec[i,0,0], tvec[i,0,1], tvec[i,0,2], angle_diff))
+                    #print("org: {}||{}||{}||{}".format(PID_state["org_x"],PID_state["org_y"],PID_state["org_z"],PID_state["org_yaw"]))
+                    #print("PID: {}||{}||{}||{}".format(PID_state["pid_x"],PID_state["pid_y"],PID_state["pid_z"],PID_state["pid_yaw"]))
+                    #print("--------------------------------------------")
+                    #text ="ID:{}|x,y,z||angle = {},{},{}||{}".format(len(markerIds), tvec[i,0,0], tvec[i,0,1], tvec[i,0,2], angle_diff) 
                     #print(tvec)
                     #cv2.putText(frame, text, (10, 40), cv2.FONT_HERSHEY_SIMPLEX,0.5, (0, 0, 255), 1, cv2.LINE_AA)
             else:
