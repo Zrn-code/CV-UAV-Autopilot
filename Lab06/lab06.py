@@ -145,8 +145,10 @@ if __name__ == '__main__':
     #   Frame Loop
     ####################################################################################
     flag_1 = False
-    
-    
+    flag_2 = False
+    flag_3 = False
+    flag_4 = False
+    flag_5 = False
     try:
         while True: 
             drone.streamon()
@@ -222,22 +224,18 @@ if __name__ == '__main__':
                         #   Motion Response
                         #######################
                         drone.send_rc_control(int(x_update//RC_update_para_x), int(z_update//RC_update_para_z), int(y_update//RC_update_para_y), int(yaw_update//RC_update_para_yaw))
-                        if abs(z_update) <=15 and abs(x_update) <=15 and tvec[i,0,2] <= 110:
+                        if abs(z_update) <=15 and abs(x_update) <=15 and abs(y_update) <=15 and tvec[i,0,2] <= 100:
                             drone.move_right(80)
-                            drone.move_forward(100)
+                            drone.move_forward(110)
                             flag_1 = True
-                            time.sleep(1)
+                            #time.sleep(1)
                         
                     elif markerIds[i] == 2 and flag_1:
-                        z_update = tvec[i,0,2] - 70
+                        z_update = tvec[i,0,2] - 80
                         PID_state["org_z"] = str(z_update)
                         z_update = z_pid.update(z_update, sleep=0)
                         PID_state["pid_z"] = str(z_update)
                         z_update = MAX_threshold(z_update)
-                        if abs(z_update) <=15:
-                            drone.send_rc_control(-100, 0, 0, 0)
-                            time.sleep(1)
-                            drone.send_rc_control(0,0,0,0)
                         #######################
                         #       X-PID
                         #######################
@@ -268,8 +266,103 @@ if __name__ == '__main__':
                         #   Motion Response
                         #######################
                         drone.send_rc_control(int(x_update//RC_update_para_x), int(z_update//RC_update_para_z), int(y_update//RC_update_para_y), int(yaw_update//RC_update_para_yaw))
+                        if abs(z_update) <=15 and tvec[i,0,2] <= 100 and abs(x_update) <=15 and abs(y_update) <=15:
+                            drone.move_left(80)
+                            drone.move_down(60)
+                            drone.move_forward(150)
+                            drone.move_right(30)
+                            flag_2 = True
+                    elif markerIds[i] == 3 and flag_2:
+                        z_update = tvec[i,0,2] - 70
+                        PID_state["org_z"] = str(z_update)
+                        z_update = z_pid.update(z_update, sleep=0)
+                        PID_state["pid_z"] = str(z_update)
+                        z_update = MAX_threshold(z_update)
+                        #######################
+                        #       X-PID
+                        #######################
+                        x_update = tvec[i,0,0]
+                        PID_state["org_x"] = str(x_update)
+                        x_update = x_pid.update(x_update, sleep=0)
+                        PID_state["pid_x"] = str(x_update)
+                        x_update = MAX_threshold(x_update)
+                        #######################
+                        #       Y-PID
+                        #######################
+                        y_update = tvec[i,0,1]*(-1)
+                        PID_state["org_y"] = str(y_update)
+                        y_update = y_pid.update(y_update, sleep=0)
+                        PID_state["pid_y"] = str(y_update)
 
+                        y_update = MAX_threshold(y_update)
+                        #######################
+                        #       YAW-PID
+                        #######################
+                        yaw_update = (-1)* angle_diff
+                        PID_state["org_yaw"] = str(yaw_update)
+                        yaw_update = yaw_pid.update(yaw_update, sleep=0)
+                        PID_state["pid_yaw"] = str(yaw_update)
+
+                        yaw_update = MAX_threshold(yaw_update)
+                        #######################
+                        #   Motion Response
+                        #######################
+                        drone.send_rc_control(int(x_update//RC_update_para_x), int(z_update//RC_update_para_z), int(y_update//RC_update_para_y), int(yaw_update//RC_update_para_yaw))
+       
+                    elif markerIds[i] == 4 and flag_3:
+                        z_update = tvec[i,0,2] - 40
+                        PID_state["org_z"] = str(z_update)
+                        z_update = z_pid.update(z_update, sleep=0)
+                        PID_state["pid_z"] = str(z_update)
+                        z_update = MAX_threshold(z_update)
+                        #######################
+                        #       X-PID
+                        #######################
+                        x_update = tvec[i,0,0]
+                        PID_state["org_x"] = str(x_update)
+                        x_update = x_pid.update(x_update, sleep=0)
+                        PID_state["pid_x"] = str(x_update)
+                        x_update = MAX_threshold(x_update)
+                        #######################
+                        #       Y-PID
+                        #######################
+                        y_update = tvec[i,0,1]*(-1)
+                        PID_state["org_y"] = str(y_update)
+                        y_update = y_pid.update(y_update, sleep=0)
+                        PID_state["pid_y"] = str(y_update)
+
+                        y_update = MAX_threshold(y_update)
+                        #######################
+                        #       YAW-PID
+                        #######################
+                        yaw_update = (-1)* angle_diff
+                        PID_state["org_yaw"] = str(yaw_update)
+                        yaw_update = yaw_pid.update(yaw_update, sleep=0)
+                        PID_state["pid_yaw"] = str(yaw_update)
+
+                        yaw_update = MAX_threshold(yaw_update)
+                        #######################
+                        #   Motion Response
+                        #######################
+                        drone.send_rc_control(int(x_update//RC_update_para_x), int(z_update//RC_update_para_z), int(y_update//RC_update_para_y), int(yaw_update//RC_update_para_yaw))
+                        
+                        if tvec[i,0,2] <= 30 and abs(z_update) < 10 and abs(x_update) < 10 and abs(y_update) < 10:
+                            drone.rotate_clockwise(90)
+                            drone.move_left(20)                            
+                            flag_4 = True
+                            
+                    if flag_4 and markerIds[i] == 5:
+                        while(flag_5 != True):
+                            markerCorners, markerIds, rejectedCandidates =cv2.aruco.detectMarkers(frame, dictionary, parameters=parameters)
+                            if markerIds[0] == 6:
+                                flag_5 = True
+                            
+                            drone.move_left(30)
+                            time.sleep(0.1)
                     
+                    if flag_5 and markerIds[i] == 6:
+                        drone.move_back(30)
+                        is_flying = False                    
                     #print("--------------------------------------------")
                     #now = time.ctime()
                     #print("{}: PID state".format(now))
