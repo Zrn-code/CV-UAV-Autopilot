@@ -24,9 +24,9 @@ RC_update_para_yaw = 1
 def keyboard(self, key):
     global is_flying
     print("key:", key)
-    fb_speed = 80
-    lf_speed = 80
-    ud_speed = 100
+    fb_speed = 45
+    lf_speed = 45
+    ud_speed = 75
     degree = 30
     if key == ord('1'):
         self.takeoff()
@@ -232,7 +232,7 @@ if __name__ == '__main__':
                             #time.sleep(1)
                         
                     elif markerIds[i] == 2 and flag_1:
-                        z_update = tvec[i,0,2] - 80
+                        z_update = tvec[i,0,2] - 70
                         PID_state["org_z"] = str(z_update)
                         z_update = z_pid.update(z_update, sleep=0)
                         PID_state["pid_z"] = str(z_update)
@@ -269,12 +269,12 @@ if __name__ == '__main__':
                         drone.send_rc_control(int(x_update//RC_update_para_x), int(z_update//RC_update_para_z), int(y_update//RC_update_para_y), int(yaw_update//RC_update_para_yaw))
                         if abs(z_update) <=15 and tvec[i,0,2] <= 100 and abs(x_update) <=15 and abs(y_update) <=15:
                             drone.move_left(80)
-                            drone.move_down(60)
+                            drone.move_down(50)
                             drone.move_forward(150)
                             drone.move_right(30)
                             flag_2 = True
 
-                    elif markerIds[i] == 3:
+                    elif markerIds[i] == 3 and flag_2:
                         z_update = tvec[i,0,2] - 70
                         PID_state["org_z"] = str(z_update)
                         z_update = z_pid.update(z_update, sleep=0)
@@ -316,9 +316,9 @@ if __name__ == '__main__':
                             drone.move_up(40)
                             flag_3 = True
 
-                    elif markerIds[i] == 0 :
+                    elif markerIds[i] == 0 and flag_3:
                         hand_marker = True
-                        z_update = tvec[i,0,2] - 90
+                        z_update = tvec[i,0,2] - 75
                         PID_state["org_z"] = str(z_update)
                         z_update = z_pid.update(z_update, sleep=0)
                         PID_state["pid_z"] = str(z_update)
@@ -366,7 +366,8 @@ if __name__ == '__main__':
                         z_update = MAX_threshold(z_update)
                         if z_update > 50:
                             z_update = 50
-                        
+                        if z_update < -50:
+                            z_update = -50
                         #######################
                         #       X-PID
                         #######################
@@ -375,6 +376,10 @@ if __name__ == '__main__':
                         x_update = x_pid.update(x_update, sleep=0)
                         PID_state["pid_x"] = str(x_update)
                         x_update = MAX_threshold(x_update)
+                        if x_update > 50:
+                            x_update = 50
+                        if x_update < -50:
+                            x_update = -50
                         #######################
                         #       Y-PID
                         #######################
@@ -386,6 +391,8 @@ if __name__ == '__main__':
                         y_update = MAX_threshold(y_update)
                         if y_update > 40:
                             y_update = 40
+                        if y_update < -40:
+                            y_update = -40
                         #######################
                         #       YAW-PID
                         #######################
@@ -413,9 +420,6 @@ if __name__ == '__main__':
                         z_update = z_pid.update(z_update, sleep=0)
                         PID_state["pid_z"] = str(z_update)
                         z_update = MAX_threshold(z_update)
-                        if z_update > 50:
-                            z_update = 50
-                        
                         #######################
                         #       X-PID
                         #######################
@@ -433,8 +437,7 @@ if __name__ == '__main__':
                         PID_state["pid_y"] = str(y_update)
 
                         y_update = MAX_threshold(y_update)
-                        if y_update > 40:
-                            y_update = 40
+
                         #######################
                         #       YAW-PID
                         #######################
@@ -447,8 +450,8 @@ if __name__ == '__main__':
                         #######################
                         #   Motion Response
                         #######################
-                        if  abs(yaw_update) < 70 and abs(z_update) < 45:
-                            drone.move_left(250)
+                        if  abs(yaw_update) < 70 and abs(z_update) < 50:
+                            drone.move_left(255)
                             drone.move_back(30)
                             flag_5 = True
                         
